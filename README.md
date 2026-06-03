@@ -4,6 +4,8 @@ EthosAlarmBot is a Telegram bot for monitoring Ethos Network activity.
 
 The bot helps users track XP, Rank, Contribution Streak, and profile activity directly from Telegram.
 
+https://t.me/EthosAlarmBot
+
 ## Features
 
 * XP monitoring
