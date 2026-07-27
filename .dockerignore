@@ -1,0 +1,13 @@
+node_modules
+dist
+.env
+.env.*
+*.js
+!public/**/*.js
+test_*.js
+fetch_*.js
+activity.json
+.git
+.gitignore
+*.md
+.vscode

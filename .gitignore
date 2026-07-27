@@ -1,0 +1,49 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+
+# Environment variables (secrets)
+.env
+
+# IDE / Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Temporary / debug files
+tmp/
+*.log
+
+# Test & probe scripts (not part of the bot itself)
+test*.js
+test*.ts
+probe*.js
+probe*.ts
+check*.js
+check*.ts
+fetch*.js
+resolve*.js
+simulate*.ts
+verify*.ts
+trigger*.ts
+
+# Debug / scratch data
+activity.json
+activity_debug.json
+probe_output.json
+stats_full.json
+slash_test.json
+xp_rewards_test*.json
+full_page.html
+temp.html
+
+# Agents / AI config
+.agents/
+skills-lock.json

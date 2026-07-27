@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ethos Telegram Login</title>
+  <style>
+    :root {
+      --bg: #0b0b0f;
+      --panel: #14141b;
+      --panel-border: rgba(255, 255, 255, 0.08);
+      --text: #f5f7fb;
+      --muted: #9aa3b2;
+      --button: #000000;
+      --button-hover: #16181d;
+      --success: #5ee6a8;
+      --shadow: 0 24px 80px rgba(0, 0, 0, 0.45);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      background:
+        radial-gradient(circle at top, rgba(80, 110, 255, 0.14), transparent 30%),
+        radial-gradient(circle at bottom, rgba(94, 230, 168, 0.08), transparent 28%),
+        var(--bg);
+      color: var(--text);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    .shell {
+      width: 100%;
+      max-width: 460px;
+    }
+
+    .card {
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.02));
+      border: 1px solid var(--panel-border);
+      border-radius: 24px;
+      box-shadow: var(--shadow);
+      padding: 36px 30px 24px;
+      backdrop-filter: blur(14px);
+    }
+
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 20px;
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .brand-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 999px;
+      background: linear-gradient(135deg, #7da2ff, #5ee6a8);
+      box-shadow: 0 0 18px rgba(125, 162, 255, 0.65);
+    }
+
+    h1 {
+      margin: 0 0 12px;
+      font-size: 32px;
+      line-height: 1.05;
+      letter-spacing: -0.04em;
+    }
+
+    .subtitle {
+      margin: 0 0 28px;
+      font-size: 15px;
+      line-height: 1.6;
+      color: var(--muted);
+    }
+
+    .meta {
+      margin: 0 0 22px;
+      padding: 14px 16px;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .button {
+      width: 100%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      border: 0;
+      border-radius: 16px;
+      background: var(--button);
+      color: #ffffff;
+      padding: 16px 18px;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform 160ms ease, background 160ms ease, box-shadow 160ms ease;
+      box-shadow: 0 16px 36px rgba(0, 0, 0, 0.35);
+    }
+
+    .button:hover:not(:disabled) {
+      background: var(--button-hover);
+      transform: translateY(-1px);
+      box-shadow: 0 18px 40px rgba(0, 0, 0, 0.42);
+    }
+
+    .button:disabled {
+      opacity: 0.72;
+      cursor: wait;
+      transform: none;
+    }
+
+    .x-icon {
+      width: 18px;
+      height: 18px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      font-weight: 800;
+    }
+
+    .status {
+      min-height: 24px;
+      margin-top: 18px;
+      font-size: 14px;
+      color: var(--muted);
+    }
+
+    .status.error {
+      color: #ff8e8e;
+    }
+
+    .success {
+      text-align: center;
+      padding: 8px 0;
+    }
+
+    .success-badge {
+      width: 56px;
+      height: 56px;
+      margin: 0 auto 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 999px;
+      background: rgba(94, 230, 168, 0.12);
+      color: var(--success);
+      font-size: 28px;
+      font-weight: 800;
+    }
+
+    .success h2 {
+      margin: 0 0 10px;
+      font-size: 28px;
+      letter-spacing: -0.03em;
+    }
+
+    .success p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 15px;
+    }
+
+    .footer {
+      margin-top: 18px;
+      text-align: center;
+      font-size: 13px;
+      color: #7f8795;
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <section class="card" id="card">
+      <div class="brand">
+        <span class="brand-dot"></span>
+        <span>Ethos Network</span>
+      </div>
+
+      <h1>Link Telegram to Ethos</h1>
+      <p class="subtitle">
+        Sign in with X to connect your Ethos profile and start receiving updates in Telegram.
+      </p>
+
+      <div class="meta" id="meta">Preparing secure sign-in...</div>
+
+      <button class="button" id="login" type="button">
+        <span class="x-icon">X</span>
+        <span id="buttonText">Login with X</span>
+      </button>
+
+      <div class="status" id="status"></div>
+    </section>
+
+    <div class="footer">Powered by Ethos Network</div>
+  </main>
+
+  <script src="/auth.js"></script>
+</body>
+</html>
