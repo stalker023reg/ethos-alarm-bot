@@ -100,6 +100,14 @@ The bot runs three background workers in the same process:
 
 3. **XP worker** — runs weekly on Sunday at 03:00 UTC. Fetches per-user XP breakdowns and sends a formatted digest with reward categories.
 
+### Reliability safeguards
+
+**Staleness guard** — if the on-chain cursor falls more than `MAX_CATCHUP_BLOCKS` (50,000 blocks ≈ 28 hours) behind the chain head, the bot automatically skips ahead to the latest block instead of processing stale events. This prevents delivering outdated slash/social notifications after prolonged downtime or container restarts.
+
+**Block range** — each polling cycle processes up to `MAX_BLOCK_RANGE` (2,000 blocks) at a time. Base chain produces ~15 blocks per 30 seconds (~1,800 blocks/day), so 2,000 blocks per cycle provides 4× headroom to stay at chain head.
+
+These constants are defined in [`baseSlash.ts`](src/ethos/baseSlash.ts) and [`baseSocial.ts`](src/ethos/baseSocial.ts).
+
 ## Setup
 
 ### Prerequisites
@@ -163,6 +171,17 @@ Tables are created automatically on startup (see `src/db/models.ts`):
 - `login_sessions` — temporary auth tokens
 - `worker_state` — persistent key-value state for worker cursors
 - `telegram_media_cache` — Telegram file_id cache for re-used media
+
+## Changelog
+
+### 2026-08-06 — Staleness guard & cursor fix
+
+**Problem:** After a Fly.io container restart on July 10, the on-chain slash/social workers stopped advancing cursors for 25 days. When they resumed on August 4, they began processing blocks from March 2025, delivering 138+ outdated slash notifications to users over two days.
+
+**Fix:**
+- Reset `base_slash_last_block` and `base_social_last_block` cursors to the current block (~49.6M) in the database
+- Added `MAX_CATCHUP_BLOCKS = 50,000` staleness guard to both `baseSlash.ts` and `baseSocial.ts` — if the cursor falls more than ~28 hours behind, the bot skips ahead automatically
+- Increased `MAX_BLOCK_RANGE` from 500 to 2,000 blocks per cycle for faster catch-up and 4× safety margin
 
 ## License
 
