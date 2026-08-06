@@ -14,7 +14,8 @@ const REVIEW_CREATED_TOPIC0 = '0xbcba601f87e317f5f2e5d40544c705eb73096974a8f4836
 
 export const BASE_SOCIAL_WORKER_STATE_KEY = 'base_social_last_block';
 const INITIAL_LOOKBACK_BLOCKS = 20;
-const MAX_BLOCK_RANGE = 500;
+const MAX_BLOCK_RANGE = 2000;
+const MAX_CATCHUP_BLOCKS = 50_000;
 
 interface BaseRpcResponse<T> {
   result?: T;
@@ -118,9 +119,26 @@ export async function getOnchainSocialBatch(): Promise<{
 }> {
   const latestBlock = await getLatestBlockNumber();
   const storedState = await getWorkerState(BASE_SOCIAL_WORKER_STATE_KEY);
-  const fromBlock = storedState
-    ? Math.min(Number(storedState) + 1, latestBlock)
-    : Math.max(latestBlock - INITIAL_LOOKBACK_BLOCKS, 0);
+  let fromBlock: number;
+
+  if (!storedState) {
+    fromBlock = Math.max(latestBlock - INITIAL_LOOKBACK_BLOCKS, 0);
+    logger.info('Base social cursor initialized', { fromBlock, latestBlock });
+  } else {
+    fromBlock = Math.min(Number(storedState) + 1, latestBlock);
+    const gap = latestBlock - fromBlock;
+
+    if (gap > MAX_CATCHUP_BLOCKS) {
+      const skippedFrom = fromBlock;
+      fromBlock = Math.max(latestBlock - INITIAL_LOOKBACK_BLOCKS, 0);
+      logger.warn('Base social cursor was too far behind, skipping ahead to avoid stale notifications', {
+        skippedFrom,
+        skippedTo: fromBlock,
+        skippedBlocks: fromBlock - skippedFrom,
+        latestBlock,
+      });
+    }
+  }
 
   if (fromBlock > latestBlock) {
     return { events: [], fromBlock, toBlock: latestBlock };

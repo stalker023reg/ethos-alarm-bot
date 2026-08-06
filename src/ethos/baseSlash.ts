@@ -9,7 +9,8 @@ const SLASH_CREATED_TOPIC0 = '0x1de3714b9e1c673dd48e1119f3d30048d6e6d3cd4f32ab3b
 const BASESCAN_TX_URL = 'https://basescan.org/tx/';
 export const BASE_SLASH_WORKER_STATE_KEY = 'base_slash_last_block';
 const INITIAL_LOOKBACK_BLOCKS = 20;
-const MAX_BLOCK_RANGE = 500;
+const MAX_BLOCK_RANGE = 2000;
+const MAX_CATCHUP_BLOCKS = 50_000;
 
 interface BaseRpcResponse<T> {
   result?: T;
@@ -119,15 +120,28 @@ export interface OnchainSlashBatch {
 export async function getOnchainSlashBatch(): Promise<OnchainSlashBatch> {
   const latestBlock = await getLatestBlockNumber();
   const storedState = await getWorkerState(BASE_SLASH_WORKER_STATE_KEY);
-  const fromBlock = storedState
-    ? Math.min(Number(storedState) + 1, latestBlock)
-    : Math.max(latestBlock - INITIAL_LOOKBACK_BLOCKS, 0);
+  let fromBlock: number;
 
   if (!storedState) {
+    fromBlock = Math.max(latestBlock - INITIAL_LOOKBACK_BLOCKS, 0);
     logger.info('Base slash cursor initialized', {
       fromBlock,
       latestBlock,
     });
+  } else {
+    fromBlock = Math.min(Number(storedState) + 1, latestBlock);
+    const gap = latestBlock - fromBlock;
+
+    if (gap > MAX_CATCHUP_BLOCKS) {
+      const skippedFrom = fromBlock;
+      fromBlock = Math.max(latestBlock - INITIAL_LOOKBACK_BLOCKS, 0);
+      logger.warn('Base slash cursor was too far behind, skipping ahead to avoid stale notifications', {
+        skippedFrom,
+        skippedTo: fromBlock,
+        skippedBlocks: fromBlock - skippedFrom,
+        latestBlock,
+      });
+    }
   }
 
   if (fromBlock > latestBlock) {
