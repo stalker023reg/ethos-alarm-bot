@@ -141,6 +141,20 @@ async function bootstrap(): Promise<void> {
   process.once('SIGTERM', () => void shutdown('SIGTERM'));
 }
 
+process.on('unhandledRejection', (reason) => {
+  logger.error('Unhandled Promise Rejection detected', {
+    error: reason instanceof Error ? reason.message : String(reason),
+    stack: reason instanceof Error ? reason.stack : undefined,
+  });
+});
+
+process.on('uncaughtException', (error) => {
+  logger.error('Uncaught Exception detected', {
+    error: error.message,
+    stack: error.stack,
+  });
+});
+
 void bootstrap().catch((error) => {
   const errorMessage = error instanceof Error ? error.message : String(error);
 

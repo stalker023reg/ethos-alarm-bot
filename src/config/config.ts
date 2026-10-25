@@ -37,7 +37,7 @@ export const config = {
     clientHeader: 'ethos-telegram-bot',
   },
   base: {
-    rpcUrl: process.env.BASE_RPC_URL ?? 'https://mainnet.base.org',
+    rpcUrl: process.env.BASE_RPC_URL ?? 'https://base-rpc.publicnode.com',
   },
   workers: {
     notificationPollCron: process.env.NOTIFICATION_POLL_CRON ?? '*/30 * * * * *',

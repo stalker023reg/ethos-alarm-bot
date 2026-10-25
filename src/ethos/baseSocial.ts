@@ -73,31 +73,52 @@ function extractTargetAddress(log: BaseLog): string | null {
 }
 
 async function callBaseRpc<T>(method: string, params: unknown[]): Promise<T> {
-  const response = await axios.post<BaseRpcResponse<T>>(
+  const rpcUrls = [
     config.base.rpcUrl,
-    {
-      jsonrpc: '2.0',
-      id: Date.now(),
-      method,
-      params,
-    },
-    {
-      timeout: 15_000,
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    },
-  );
+    'https://base-rpc.publicnode.com',
+    'https://1rpc.io/base',
+    'https://mainnet.base.org',
+  ].filter((url, idx, arr) => Boolean(url) && arr.indexOf(url) === idx);
 
-  if (response.data.error) {
-    throw new Error(`Base RPC ${method} failed: ${response.data.error.message}`);
+  let lastError: Error | null = null;
+  for (const rpcUrl of rpcUrls) {
+    try {
+      const response = await axios.post<BaseRpcResponse<T>>(
+        rpcUrl,
+        {
+          jsonrpc: '2.0',
+          id: Date.now(),
+          method,
+          params,
+        },
+        {
+          timeout: 15_000,
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        },
+      );
+
+      if (response.data.error) {
+        throw new Error(`Base RPC ${method} failed on ${rpcUrl}: ${response.data.error.message}`);
+      }
+
+      if (typeof response.data.result === 'undefined') {
+        throw new Error(`Base RPC ${method} returned no result from ${rpcUrl}`);
+      }
+
+      return response.data.result;
+    } catch (err) {
+      lastError = err instanceof Error ? err : new Error(String(err));
+      if (rpcUrls.length > 1) {
+        logger.warn(`Base RPC ${method} failed on ${rpcUrl}, trying fallback...`, {
+          error: lastError.message,
+        });
+      }
+    }
   }
 
-  if (typeof response.data.result === 'undefined') {
-    throw new Error(`Base RPC ${method} returned no result`);
-  }
-
-  return response.data.result;
+  throw lastError ?? new Error(`All Base RPC endpoints failed for ${method}`);
 }
 
 async function getLatestBlockNumber(): Promise<number> {
