@@ -102,11 +102,15 @@ The bot runs three background workers in the same process:
 
 ### Reliability safeguards
 
+**RPC failover & redundancy** — On-chain Base event queries use an automatic multi-endpoint failover pool (`config.base.rpcUrl`, `https://base-rpc.publicnode.com`, `https://1rpc.io/base`, `https://mainnet.base.org`). If any RPC provider times out or returns rate-limit/network errors, the bot automatically falls back to the next available provider.
+
+**Process crash guards** — Global listeners for `unhandledRejection` and `uncaughtException` capture and log structured stack traces, preventing background worker aborts and silent container failures.
+
 **Staleness guard** — if the on-chain cursor falls more than `MAX_CATCHUP_BLOCKS` (50,000 blocks ≈ 28 hours) behind the chain head, the bot automatically skips ahead to the latest block instead of processing stale events. This prevents delivering outdated slash/social notifications after prolonged downtime or container restarts.
 
 **Block range** — each polling cycle processes up to `MAX_BLOCK_RANGE` (2,000 blocks) at a time. Base chain produces ~15 blocks per 30 seconds (~1,800 blocks/day), so 2,000 blocks per cycle provides 4× headroom to stay at chain head.
 
-These constants are defined in [`baseSlash.ts`](src/ethos/baseSlash.ts) and [`baseSocial.ts`](src/ethos/baseSocial.ts).
+These constants and fallback mechanisms are defined in [`baseSlash.ts`](src/ethos/baseSlash.ts) and [`baseSocial.ts`](src/ethos/baseSocial.ts).
 
 ## Setup
 
@@ -131,7 +135,7 @@ Optional variables (have defaults):
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `ETHOS_API_BASE` | `https://api.ethos.network/api/v2` | Ethos API base URL |
-| `BASE_RPC_URL` | `https://mainnet.base.org` | Base chain RPC endpoint |
+| `BASE_RPC_URL` | `https://base-rpc.publicnode.com` | Base chain RPC endpoint (with automatic fallbacks) |
 | `NOTIFICATION_POLL_CRON` | `*/30 * * * * *` | Notification poll interval |
 | `FAST_NOTIFICATIONS` | `true` | Poll all profiles every tick |
 | `REWARD_CRON` | `0 3 * * *` | XP digest schedule |
@@ -173,6 +177,13 @@ Tables are created automatically on startup (see `src/db/models.ts`):
 - `telegram_media_cache` — Telegram file_id cache for re-used media
 
 ## Changelog
+
+### v1.1.0 (2026-10-25) — Base RPC Failover & Process Resilience
+
+- **Base RPC failover pool:** Added multi-provider failover mechanism to [`baseSlash.ts`](src/ethos/baseSlash.ts) and [`baseSocial.ts`](src/ethos/baseSocial.ts) across `config.base.rpcUrl`, `https://base-rpc.publicnode.com`, `https://1rpc.io/base`, and `https://mainnet.base.org` with automatic failover on rate limits, timeouts, or network failures.
+- **Default RPC endpoint:** Switched default Base RPC to `https://base-rpc.publicnode.com`.
+- **Process crash guards:** Added global `unhandledRejection` and `uncaughtException` process listeners in [`bot.ts`](src/bot.ts) with detailed error/stack logging to prevent silent crashes.
+- **Version bump:** Updated version to `1.1.0`.
 
 ### 2026-08-06 — Staleness guard & cursor fix
 
